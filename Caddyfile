@@ -1,0 +1,46 @@
+https://blog.swrlab.org {
+	proxy / ghost:2368 {
+		transparent
+	}
+}
+
+https://cloud.swrlab.org {
+  # Enable basic compression
+  gzip
+ 
+  # Service discovery via well-known
+  redir /.well-known/carddav /remote.php/carddav 301
+  redir /.well-known/caldav /remote.php/caldav 301
+  
+    proxy / nextcloud:80 {
+        transparent
+        
+        # Nextcloud best practices and security
+        header_downstream Strict-Transport-Security "max-age=15552000;"
+        header_downstream Referrer-Policy "strict-origin-when-cross-origin"
+        header_downstream X-XSS-Protection "1; mode=block"
+        header_downstream X-Content-Type-Options "nosniff"
+        header_downstream X-Frame-Options "SAMEORIGIN"
+    }
+}
+
+https://lib.swrlab.org {
+  gzip
+  proxy / calibre-web:8083 {
+    transparent
+  }
+}
+
+#https://calibre.swrlab.org {
+#  gzip
+#  proxy / calibre:8080 {
+#    transparent
+#  }
+#}
+
+https://wallabag.swrlab.org {
+  gzip
+  proxy / wallabag:80 {
+    transparent
+  }
+}

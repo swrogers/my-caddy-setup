@@ -1,0 +1,95 @@
+version: '3'
+
+services:
+    caddy:
+        container_name: caddy
+        image: abiosoft/caddy
+        restart: always
+        networks:
+            - secure-proxy
+            - internal
+        ports:
+            - 80:80
+            - 443:443
+        volumes:
+            - ./Caddyfile:/etc/Caddyfile
+            - ./.caddy:/root/.caddy
+            
+    ghost:
+        container_name: ghost
+        image: ghost
+        restart: always
+        networks:
+            - secure-proxy
+        volumes:
+            - ./content:/var/lib/ghost/content
+        ports:
+            - 2368:2368
+        environment:
+            url: https://blog.swrlab.org
+            
+    nextcloud:
+        container_name: nextcloud
+        image: nextcloud
+        restart: always
+        networks:
+            - secure-proxy
+        volumes:
+            - ./nextcloud-data:/var/www/html
+        ports:
+            - 8080:80
+
+    calibre:
+        container_name: calibre
+        image: linuxserver/calibre
+        restart: unless-stopped
+        networks:
+            - secure-proxy
+        volumes:
+            - ./calibre-web-library:/config
+        ports:
+            - 8888:8080
+            - 8081:8081
+        environment:
+            PUID: 1000
+            PGID: 1000
+            TZ: America/Chicago
+
+    calibre-web:
+        container_name: calibre-web
+        image: linuxserver/calibre-web
+        restart: unless-stopped
+        networks:
+            - secure-proxy
+        volumes:
+            - ./calibre-web-data:/config
+            - ./calibre-web-library:/books
+        ports:
+            - 8083:8083
+        environment:
+            PUID: 1000
+            PGID: 1000
+            TZ: America/Chicago
+            DOCKER_MODS: linuxserver/calibre-web:calibre
+
+    wallabag:
+        container_name: wallabag
+        image: wallabag/wallabag
+        restart: unless-stopped
+        networks:
+            - secure-proxy
+        volumes:
+            - ./wallabag/data:/var/www/wallabag/data
+            - ./wallabag/images:/var/www/wallabag/web/assets/images
+        ports:
+            - 8882:80
+        environment:
+            - SYMFONY__ENV__DOMAIN_NAME=https://wallabag.swrlab.org
+            - SYMFONY__ENV__FOSUSER_REGISTRATION=false
+            - SYMFONY__ENV__FOSUSER_CONFIRMATION=false
+
+networks:
+    secure-proxy:
+        external: true
+    internal:
+        external: false
